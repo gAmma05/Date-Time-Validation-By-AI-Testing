@@ -1,14 +1,50 @@
 [
   {
-    "input": "2024-03-15",
+    "input": "2023-10-27",
     "expected": true,
     "actual": true,
     "passed": true
   },
   {
-    "input": "2023-12-31T23:59:59Z",
+    "input": "2023-10-27 10:30:00",
     "expected": true,
     "actual": false,
+    "passed": false
+  },
+  {
+    "input": "2023-10-27T10:30:00Z",
+    "expected": true,
+    "actual": false,
+    "passed": false
+  },
+  {
+    "input": "2023-10-27 10:30:00.123",
+    "expected": true,
+    "actual": false,
+    "passed": false
+  },
+  {
+    "input": "2023/10/27",
+    "expected": false,
+    "actual": false,
+    "passed": true
+  },
+  {
+    "input": "October 27, 2023",
+    "expected": false,
+    "actual": false,
+    "passed": true
+  },
+  {
+    "input": "2023-13-01",
+    "expected": false,
+    "actual": true,
+    "passed": false
+  },
+  {
+    "input": "2023-02-29",
+    "expected": false,
+    "actual": true,
     "passed": false
   },
   {
@@ -18,45 +54,9 @@
     "passed": true
   },
   {
-    "input": "2023-02-29",
+    "input": "2023-10-27 25:00:00",
     "expected": false,
     "actual": true,
     "passed": false
-  },
-  {
-    "input": "2024-03-15 10:30:00",
-    "expected": true,
-    "actual": false,
-    "passed": false
-  },
-  {
-    "input": "2024-13-01",
-    "expected": false,
-    "actual": true,
-    "passed": false
-  },
-  {
-    "input": "2024-03-32",
-    "expected": false,
-    "actual": true,
-    "passed": false
-  },
-  {
-    "input": "Invalid Date",
-    "expected": false,
-    "actual": false,
-    "passed": true
-  },
-  {
-    "input": "2024-03-15T10:30:00.000+05:30",
-    "expected": true,
-    "actual": false,
-    "passed": false
-  },
-  {
-    "input": "1900-01-01",
-    "expected": true,
-    "actual": true,
-    "passed": true
   }
 ]
