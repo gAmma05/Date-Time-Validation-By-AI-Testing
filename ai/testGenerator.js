@@ -6,21 +6,20 @@ export async function generateDateTimeTests() {
   Each test case should include:
   - input: the date/time string
   - expected: whether it should be valid (true/false)
-  Format output as JSON array only. Do NOT include markdown formatting.
+  Format output as JSON array only.
   `;
-  
-  const text = await askGemini(prompt);
 
-  // ✂️ Clean output (remove ```json, ``` and whitespace)
-  const cleaned = text
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
+  for (let i = 0; i < 3; i++) { // tối đa 3 lần thử
+    const text = await askGemini(prompt);
+    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
-  try {
-    return JSON.parse(cleaned);
-  } catch (err) {
-    console.error("❌ Failed to parse AI output:", cleaned);
-    return [];
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      console.warn(`⚠️ Attempt ${i + 1} failed to parse AI output. Retrying...`);
+    }
   }
+
+  console.error("❌ AI failed to return valid JSON after 3 attempts.");
+  return [];
 }

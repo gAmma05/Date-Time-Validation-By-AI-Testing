@@ -1,32 +1,74 @@
-export function validateDateTime(str) {
-  // Thử parse theo ISO hoặc các format thông dụng
-  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}):(\d{2})(?:Z|[+-]\d{2}:\d{2})?)?$/);
-  if (!match) return false;
+import { fileURLToPath } from "url";
+import path from "path";
+import fs from "fs";
 
-  const year = parseInt(match[1], 10);
-  const month = parseInt(match[2], 10);
-  const day = parseInt(match[3], 10);
-  const hour = match[4] ? parseInt(match[4], 10) : 0;
-  const minute = match[5] ? parseInt(match[5], 10) : 0;
-  const second = match[6] ? parseInt(match[6], 10) : 0;
+// ✅ Lấy đường dẫn đúng trên Windows
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const configPath = path.join(__dirname, "formats.json");
 
-  // Kiểm tra tháng hợp lệ
-  if (month < 1 || month > 12) return false;
-
-  // Kiểm tra ngày hợp lệ
-  const daysInMonth = [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  if (day < 1 || day > daysInMonth[month - 1]) return false;
-
-  // Kiểm tra giờ, phút, giây
-  if (hour < 0 || hour > 23) return false;
-  if (minute < 0 || minute > 59) return false;
-  if (second < 0 || second > 59) return false;
-
-  return true;
+// ✅ Nếu file chưa tồn tại → tự tạo mặc định
+if (!fs.existsSync(configPath)) {
+  fs.writeFileSync(
+    configPath,
+    JSON.stringify(
+      { formats: ["YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ssZ"] },
+      null,
+      2
+    )
+  );
 }
 
-function isLeapYear(year) {
-  if (year % 4 !== 0) return false;
-  if (year % 100 !== 0) return true;
-  return year % 400 === 0;
+// ✅ Đọc danh sách format hiện có
+let formats = JSON.parse(fs.readFileSync(configPath, "utf-8")).formats;
+
+export function validateDateTime(str) {
+  for (const fmt of formats) {
+    if (matchFormat(str, fmt)) return true;
+  }
+
+  // ❗ Nếu không khớp format nào — kích hoạt self-healing
+  selfHeal(str);
+  return false;
+}
+
+// -----------------------------
+
+function matchFormat(str, fmt) {
+  switch (fmt) {
+    case "YYYY-MM-DD":
+      return /^\d{4}-\d{2}-\d{2}$/.test(str);
+    case "YYYY-MM-DDTHH:mm:ssZ":
+      return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(str);
+    case "YYYY/MM/DD":
+      return /^\d{4}\/\d{2}\/\d{2}$/.test(str);
+    case "YYYY-MM-DD HH:mm:ss":
+      return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str);
+    default:
+      return false;
+  }
+}
+
+// -----------------------------
+
+function selfHeal(str) {
+  console.log(`⚠️ Unknown date format detected: ${str}`);
+
+  // Phát hiện pattern mới bằng regex đơn giản
+  let detectedFmt = null;
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(str)) detectedFmt = "YYYY/MM/DD";
+  else if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str))
+    detectedFmt = "YYYY-MM-DD HH:mm:ss";
+  else if (/^\d{2}-\d{2}-\d{4}$/.test(str))
+    detectedFmt = "DD-MM-YYYY";
+  else if (/^\d{4}\.\d{2}\.\d{2}$/.test(str))
+    detectedFmt = "YYYY.MM.DD";
+
+  if (detectedFmt && !formats.includes(detectedFmt)) {
+    console.log(`🤖 Self-healing: adding new format "${detectedFmt}"`);
+    formats.push(detectedFmt);
+    fs.writeFileSync(configPath, JSON.stringify({ formats }, null, 2));
+  } else {
+    console.log("❌ Unable to infer new format automatically.");
+  }
 }
