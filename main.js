@@ -2,11 +2,13 @@ import { generateDateTimeTests } from "./ai/testGenerator.js";
 import { runTests } from "./runner/testRunner.js";
 
 async function main() {
-  const tests = await generateDateTimeTests();
-  console.log("🧠 Generated test cases:", tests);
+  console.log("🚀 Generating AI-based test cases...");
+  const testCases = await generateDateTimeTests();
 
-  const results = runTests(tests);
-  console.log("🧪 Results:", results);
+  console.log("🧪 Running tests...");
+  const results = await runTests(testCases);
+
+  console.table(results);
 }
 
 main();
